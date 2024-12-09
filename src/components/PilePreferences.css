@@ -1,0 +1,50 @@
+.pile-preferences-container {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background-color: rgba(248, 249, 250, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 5;
+}
+
+.preference-button {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: transform 0.2s ease;
+    opacity: 0.7;
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.preference-button:hover {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.1);
+}
+
+.preference-button:active {
+    transform: translateX(-50%) scale(0.95);
+}
+
+.preference-button[data-active="true"] {
+    opacity: 1;
+    background-color: #4CAF50 !important;
+    color: white !important;
+}
+
+/* Ensure emoji is centered */
+.preference-button span {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}

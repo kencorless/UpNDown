@@ -1,0 +1,78 @@
+.player-hand {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #1e2127;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 10px;
+}
+
+.hand-card {
+  width: 80px;
+  height: 120px;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #2c313c;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.hand-card.playable:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 4px 8px rgba(97, 218, 251, 0.3);
+}
+
+.hand-card.selected {
+  transform: translateY(-10px);
+  box-shadow: 0 0 15px rgba(97, 218, 251, 0.8);
+  border: 2px solid #61dafb;
+}
+
+.hand-card.not-playable {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hand-title {
+  font-size: 18px;
+  color: #8fbcbb;
+  margin-bottom: 10px;
+}
+
+.no-cards {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 20px;
+}
+
+.turn-hint {
+  text-align: center;
+  color: #61dafb;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .hand-card {
+    width: 60px;
+    height: 90px;
+    font-size: 20px;
+  }
+}
