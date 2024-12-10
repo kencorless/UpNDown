@@ -1,0 +1,45 @@
+.card-pile {
+  position: relative;
+  width: 720px;
+  height: 240px;
+  border-radius: 80px;
+  margin: 0 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-pile.up {
+  background-color: rgb(200, 240, 200);
+}
+
+.card-pile.down {
+  background-color: rgb(255, 200, 200);
+}
+
+.inset-area {
+  position: relative;
+  width: 80%;    /* Make it relative to parent */
+  height: 85%;   /* Make it relative to parent */
+  background: linear-gradient(to bottom right, #d0d4d8, #a8b0b8);
+  border: 1px solid #000;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;  /* Center within parent */
+}
+
+.top-card {
+  font-size: 24px;
+  font-weight: normal;
+  color: white;
+  text-align: center;
+}
+
+.foundation-piles {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+}
