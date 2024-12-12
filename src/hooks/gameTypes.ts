@@ -5,13 +5,36 @@ export const PILE_TYPES = {
 } as const;
 
 export const START_VALUES = {
-  UP: 1,
-  DOWN: 100
+  UP: 30,        
+  DOWN: 78       
+} as const;
+
+export const SOLITAIRE_HAND_SIZE = 8;
+
+// Card deck range
+export const CARD_VALUES = {
+  MIN: 30,      
+  MAX: 78       
+} as const;
+
+// UI Constants
+export const COLORS = {
+  ASCENDING_PILE: 'rgb(200, 240, 200)',  // Light green
+  DESCENDING_PILE: 'rgb(255, 200, 200)',  // Light pink
+  INSET_GRADIENT_START: '#d0d4d8',
+  INSET_GRADIENT_END: '#a8b0b8'
 } as const;
 
 // Game Types
 export type PileType = typeof PILE_TYPES[keyof typeof PILE_TYPES];
 export type GameMode = 'solitaire' | 'multiplayer';
+
+// Player Statistics
+export interface PlayerStats {
+  totalCardsPlayed: number;
+  specialPlaysCount: number;
+  totalMovement: number;
+}
 
 // Game Interfaces
 export interface Card {
@@ -37,6 +60,7 @@ export interface Player {
   isHost: boolean;
   isReady?: boolean;
   joinedAt: number;
+  stats: PlayerStats;
 }
 
 export interface GameState {
@@ -50,6 +74,7 @@ export interface GameState {
   minCardsPerTurn: number;
   turnEnded: boolean;
   gameOver: boolean;
+  gameWon: boolean;
   lastUpdate: number;
 }
 

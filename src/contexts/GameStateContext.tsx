@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useReducer } from 'react';
-import { type Card, type GameState, PILE_TYPES } from '../types/gameTypes';
+import { 
+  type Card, 
+  type GameState, 
+  type Pile, 
+  PILE_TYPES 
+} from '../types/gameTypes';
 import { drawCards } from '../utils/gameUtils';
 
 type GameAction =
@@ -30,23 +35,94 @@ const GameStateContext = createContext<{
   dispatch: () => null
 });
 
-// Helper functions
 const sortCards = (cards: Card[]): Card[] => {
   return [...cards].sort((a, b) => a.value - b.value);
 };
 
 const canPlayOnUpPile = (card: Card, currentValue: number): boolean => {
-  return card.value > currentValue || card.value === currentValue - 10;
+  const isHigher = card.value > currentValue;
+  const isTenLess = card.value === currentValue - 10;
+  console.log('Ascending pile check:', {
+    cardValue: card.value,
+    currentValue,
+    isHigher,
+    isTenLess,
+    isValid: isHigher || isTenLess
+  });
+  return isHigher || isTenLess;
 };
 
 const canPlayOnDownPile = (card: Card, currentValue: number): boolean => {
-  return card.value < currentValue || card.value === currentValue + 10;
+  const isLower = card.value < currentValue;
+  const isTenMore = card.value === currentValue + 10;
+  console.log('Descending pile check:', {
+    cardValue: card.value,
+    currentValue,
+    isLower,
+    isTenMore,
+    isValid: isLower || isTenMore
+  });
+  return isLower || isTenMore;
 };
 
-const isValidPlay = (card: Card, pile: { type: 'UP' | 'DOWN', currentValue: number }): boolean => {
+const isValidPlay = (card: Card, pile: Pile): boolean => {
+  // For first card on the pile
+  if (pile.cards.length === 0) {
+    if (pile.type === PILE_TYPES.UP) {
+      const isValid = card.value >= pile.startValue;
+      console.log('First card on ascending pile:', {
+        cardValue: card.value,
+        startValue: pile.startValue,
+        isValid
+      });
+      return isValid;
+    }
+    const isValid = card.value <= pile.startValue;
+    console.log('First card on descending pile:', {
+      cardValue: card.value,
+      startValue: pile.startValue,
+      isValid
+    });
+    return isValid;
+  }
+
+  // For subsequent cards
   return pile.type === PILE_TYPES.UP 
     ? canPlayOnUpPile(card, pile.currentValue)
     : canPlayOnDownPile(card, pile.currentValue);
+};
+
+const hasValidMove = (hand: Card[], piles: Pile[]): boolean => {
+  // Check each card in hand against each pile
+  const possibleMoves = hand.map(card => ({
+    cardValue: card.value,
+    validPiles: piles.filter(pile => isValidPlay(card, pile)).map(p => p.id)
+  }));
+
+  console.log('Valid moves check:', {
+    hand: hand.map(c => c.value),
+    possibleMoves
+  });
+
+  return hand.some(card => piles.some(pile => isValidPlay(card, pile)));
+};
+
+const isSpecialPlay = (card: Card, pile: Pile): boolean => {
+  if (pile.type === PILE_TYPES.UP) {
+    return card.value === pile.currentValue - 10;
+  } else {
+    return card.value === pile.currentValue + 10;
+  }
+};
+
+const calculateMovement = (card: Card, pile: Pile): number => {
+  // If it's a special play (-10 or +10), return -10
+  if (isSpecialPlay(card, pile)) {
+    return -10;
+  }
+  
+  // For normal plays, return absolute difference
+  return Math.abs(card.value - pile.currentValue);
 };
 
 function gameReducer(state: GameStateContextType, action: GameAction): GameStateContextType {
@@ -112,10 +188,23 @@ function gameReducer(state: GameStateContextType, action: GameAction): GameState
         };
       }
 
+      console.log('Attempting to play:', {
+        cardValue: card.value,
+        pileType: pile.type,
+        currentValue: pile.currentValue,
+        isFirstCard: pile.cards.length === 0,
+        startValue: pile.startValue
+      });
+
       if (!isValidPlay(card, pile)) {
+        const errorMsg = pile.cards.length === 0
+          ? `First card on ${pile.type} pile must be ${pile.type === PILE_TYPES.UP ? 'greater than' : 'less than'} ${pile.startValue}`
+          : `Cannot play ${card.value} on ${pile.type} pile with current value ${pile.currentValue}`;
+        
+        console.log('Invalid play:', errorMsg);
         return {
           ...state,
-          error: `Cannot play ${card.value} on ${pile.type} pile with current value ${pile.currentValue}`
+          error: errorMsg
         };
       }
 
@@ -132,12 +221,19 @@ function gameReducer(state: GameStateContextType, action: GameAction): GameState
           newDrawPile = drawResult.newDeck;
         }
 
+        const movement = calculateMovement(card, pile);
         const updatedPlayers = gameState.players.map((p, i) =>
           i === gameState.currentPlayer
             ? {
                 ...p,
                 hand: newHand,
-                cardCount: newHand.length
+                cardCount: newHand.length,
+                stats: {
+                  ...p.stats,
+                  totalCardsPlayed: p.stats.totalCardsPlayed + 1,
+                  specialPlaysCount: isSpecialPlay(card, pile) ? p.stats.specialPlaysCount + 1 : p.stats.specialPlaysCount,
+                  totalMovement: p.stats.totalMovement + movement
+                }
               }
             : p
         );
@@ -152,16 +248,29 @@ function gameReducer(state: GameStateContextType, action: GameAction): GameState
             : p
         );
 
+        const isGameWon = newHand.length === 0 && newDrawPile.length === 0;
+        const hasNoValidMoves = !hasValidMove(newHand, updatedPiles);
+
+        console.log('Game state check:', {
+          isGameWon,
+          hasNoValidMoves,
+          handSize: newHand.length,
+          drawPileSize: newDrawPile.length
+        });
+
         const newState = {
           ...gameState,
           players: updatedPlayers,
           foundationPiles: updatedPiles,
           drawPile: newDrawPile,
           cardsPlayedThisTurn: gameState.cardsPlayedThisTurn + 1,
+          gameWon: isGameWon,
+          gameOver: isGameWon || hasNoValidMoves,
           lastUpdate: Date.now()
         };
 
-        console.log('Successfully played card:', card, 'on pile:', pileId);
+        console.log('Successfully played card:', card.value, 'on pile:', pileId);
+        console.log('Movement:', movement, 'Special play:', isSpecialPlay(card, pile));
         return {
           ...state,
           gameState: newState,
@@ -169,6 +278,7 @@ function gameReducer(state: GameStateContextType, action: GameAction): GameState
         };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to play card';
+        console.error('Error playing card:', errorMessage);
         return {
           ...state,
           error: errorMessage
@@ -194,6 +304,14 @@ function gameReducer(state: GameStateContextType, action: GameAction): GameState
         );
 
         const sortedHand = sortCards(newHand);
+        const updatedPiles = gameState.foundationPiles;
+        const hasNoValidMoves = !hasValidMove(sortedHand, updatedPiles);
+
+        console.log('Game state after draw:', {
+          handSize: sortedHand.length,
+          drawPileSize: newDeck.length,
+          hasNoValidMoves
+        });
 
         return {
           ...state,
@@ -208,6 +326,8 @@ function gameReducer(state: GameStateContextType, action: GameAction): GameState
               ...gameState.players.slice(1)
             ],
             drawPile: newDeck,
+            gameOver: hasNoValidMoves,
+            gameWon: false,
             lastUpdate: Date.now()
           },
           error: null

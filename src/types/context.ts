@@ -1,5 +1,5 @@
 import { type Dispatch } from 'react';
-import { type Card, type GameState as BaseGameState } from './shared';
+import { type Card, type GameState as BaseGameState } from './gameTypes';
 
 export type GameState = BaseGameState;
 

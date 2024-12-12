@@ -1,10 +1,12 @@
-import { type Card, type Pile, type Player, PILE_TYPES } from '../types/shared';
-
-// Game constants
-const MIN_CARD_VALUE = 2;
-const MAX_CARD_VALUE = 99;
-const INITIAL_HAND_SIZE = 8;
-const MULTIPLAYER_HAND_SIZE = 7;
+import { 
+  type Card, 
+  type Pile, 
+  type Player, 
+  PILE_TYPES,
+  CARD_VALUES,
+  SOLITAIRE_HAND_SIZE,
+  MULTIPLAYER_HAND_SIZE 
+} from '../types/gameTypes';
 
 // Type definitions
 interface DealResult {
@@ -29,37 +31,21 @@ interface AutoPlayResult {
   cardsPlayed: number;
 }
 
-// Updated Card type without suit
-interface GameCard {
-  id: string;
-  value: number;
-}
-
 /**
  * Creates and shuffles the initial deck of cards
  */
-export function createDeck(): GameCard[] {
-  if (MIN_CARD_VALUE >= MAX_CARD_VALUE) {
-    throw new Error('Invalid card value range');
+export function createDeck(): Card[] {
+  const deck: Card[] = [];
+  for (let value = CARD_VALUES.MIN; value <= CARD_VALUES.MAX; value++) {
+    deck.push({ id: `card-${value}`, value });
   }
-
-  const deck: GameCard[] = [];
-  let id = 1;
-
-  for (let value = MIN_CARD_VALUE; value <= MAX_CARD_VALUE; value++) {
-    deck.push({
-      id: `card-${id++}`,
-      value
-    });
-  }
-
   return shuffleDeck(deck);
 }
 
 /**
  * Shuffles the deck
  */
-export function shuffleDeck(deck: GameCard[]): GameCard[] {
+export function shuffleDeck(deck: Card[]): Card[] {
   const shuffled = [...deck];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -71,19 +57,19 @@ export function shuffleDeck(deck: GameCard[]): GameCard[] {
 /**
  * Sorts cards by value in ascending order
  */
-export function sortCards(cards: GameCard[]): GameCard[] {
+export function sortCards(cards: Card[]): Card[] {
   return [...cards].sort((a, b) => a.value - b.value);
 }
 
 /**
  * Deals cards for a multiplayer game
  */
-export function dealCards(deck: GameCard[], numPlayers: number): DealResult {
+export function dealCards(deck: Card[], numPlayers: number): DealResult {
   if (numPlayers <= 0) {
     throw new Error('Number of players must be positive');
   }
   
-  const hands: GameCard[][] = Array(numPlayers).fill([]).map(() => []);
+  const hands: Card[][] = Array(numPlayers).fill([]).map(() => []);
   const deckCopy = [...deck];
   
   for (let i = 0; i < MULTIPLAYER_HAND_SIZE; i++) {
@@ -110,19 +96,19 @@ export function dealCards(deck: GameCard[], numPlayers: number): DealResult {
 /**
  * Deals initial hand to a player
  */
-export function dealInitialHand(deck: GameCard[]): InitialHandResult {
-  if (deck.length < INITIAL_HAND_SIZE) {
-    throw new Error(`Not enough cards in deck for initial hand. Required: ${INITIAL_HAND_SIZE}`);
+export function dealInitialHand(deck: Card[]): InitialHandResult {
+  if (deck.length < SOLITAIRE_HAND_SIZE) {
+    throw new Error(`Not enough cards in deck for initial hand. Required: ${SOLITAIRE_HAND_SIZE}`);
   }
-  const hand = deck.slice(0, INITIAL_HAND_SIZE);
-  const remainingDeck = deck.slice(INITIAL_HAND_SIZE);
+  const hand = deck.slice(0, SOLITAIRE_HAND_SIZE);
+  const remainingDeck = deck.slice(SOLITAIRE_HAND_SIZE);
   return { hand: sortCards(hand), remainingDeck };
 }
 
 /**
  * Deals hands for a multiplayer game
  */
-export function dealMultiplayerHands(deck: GameCard[]): MultiplayerHandResult {
+export function dealMultiplayerHands(deck: Card[]): MultiplayerHandResult {
   const requiredCards = MULTIPLAYER_HAND_SIZE * 2;
   if (deck.length < requiredCards) {
     throw new Error(`Not enough cards for multiplayer game. Required: ${requiredCards}`);
@@ -142,7 +128,7 @@ export function dealMultiplayerHands(deck: GameCard[]): MultiplayerHandResult {
 /**
  * Validates if a card can be played on a specific pile
  */
-export function isValidPlay(card: GameCard | null | undefined, pileCards: GameCard[], pileType: 'UP' | 'DOWN'): boolean {
+export function isValidPlay(card: Card | null | undefined, pileCards: Card[], pileType: 'UP' | 'DOWN'): boolean {
   if (!card) return false;
 
   if (pileCards.length === 0) {
@@ -163,10 +149,10 @@ export function isValidPlay(card: GameCard | null | undefined, pileCards: GameCa
  * Draws cards from the deck
  */
 export function drawCards(
-  deck: GameCard[], 
-  hand: GameCard[], 
+  deck: Card[], 
+  hand: Card[], 
   count: number
-): { newHand: GameCard[]; newDeck: GameCard[]; } {
+): { newHand: Card[]; newDeck: Card[]; } {
   if (count < 0) {
     throw new Error('Count must be non-negative');
   }
@@ -229,7 +215,7 @@ export function updateGameState(
 /**
  * Auto-plays cards from the hand
  */
-export function autoPlay(hand: GameCard[], piles: Pile[]): AutoPlayResult {
+export function autoPlay(hand: Card[], piles: Pile[]): AutoPlayResult {
   let updatedHand = [...hand];
   let updatedPiles = [...piles];
   let cardsPlayed = 0;
@@ -263,13 +249,13 @@ export function autoPlay(hand: GameCard[], piles: Pile[]): AutoPlayResult {
 }
 
 // Utility functions with proper typing
-export const hasValidMove = (hand: GameCard[], foundationPiles: Pile[]): boolean =>
+export const hasValidMove = (hand: Card[], foundationPiles: Pile[]): boolean =>
   hand.some(card => foundationPiles.some(pile => isValidPlay(card, pile.cards, pile.type)));
 
-export const getValidMoves = (card: GameCard, piles: Pile[]): Pile[] =>
+export const getValidMoves = (card: Card, piles: Pile[]): Pile[] =>
   piles.filter(pile => isValidPlay(card, pile.cards, pile.type));
 
-export const checkGameOver = (players: Player[], drawPile: GameCard[], foundationPiles: Pile[]): boolean =>
+export const checkGameOver = (players: Player[], drawPile: Card[], foundationPiles: Pile[]): boolean =>
   drawPile.length === 0 && players.every(player => !hasValidMove(player.hand, foundationPiles));
 
 export const checkWinCondition = (piles: Pile[]): boolean =>

@@ -1,6 +1,11 @@
 import { useCallback } from 'react';
 import { useGameStateContext } from '../contexts/GameStateContext';
-import { type GameState, PILE_TYPES, START_VALUES } from '../types/gameTypes';
+import { 
+  type GameState, 
+  PILE_TYPES, 
+  START_VALUES,
+  SOLITAIRE_HAND_SIZE 
+} from '../types/gameTypes';
 import { createDeck, drawCards, shuffleDeck } from '../utils/gameUtils';
 
 export function useGameState() {
@@ -13,8 +18,8 @@ export function useGameState() {
     // Create and shuffle the deck
     const deck = shuffleDeck(createDeck());
 
-    // Draw initial hand
-    const { newHand, newDeck } = drawCards(deck, [], 8);
+    // Draw initial hand using constant
+    const { newHand, newDeck } = drawCards(deck, [], SOLITAIRE_HAND_SIZE);
     
     const initialState: GameState = {
       gameId: `game-${timestamp}`,
@@ -23,10 +28,15 @@ export function useGameState() {
         id: playerId,
         name: playerName,
         hand: newHand,
-        cardCount: 8,
+        cardCount: SOLITAIRE_HAND_SIZE,
         isHost: true,
         isReady: true,
-        joinedAt: timestamp
+        joinedAt: timestamp,
+        stats: {
+          totalCardsPlayed: 0,
+          specialPlaysCount: 0,
+          totalMovement: 0
+        }
       }],
       currentPlayer: 0,
       foundationPiles: [
@@ -68,6 +78,7 @@ export function useGameState() {
       minCardsPerTurn: 2,
       turnEnded: false,
       gameOver: false,
+      gameWon: false,
       lastUpdate: timestamp
     };
 

@@ -17,41 +17,6 @@ export interface Pile {
   type: PileType;
   cards: Card[];
   startValue: number;
-  currentValue: number; // Added this line
+  currentValue: number;
   label: string;
 }
-
-export interface Player {
-  id: string;
-  name: string;
-  hand: Card[];
-  cardCount: number;
-  isHost: boolean;
-  isReady?: boolean;
-  joinedAt: number;
-}
-
-export interface GameState {
-  gameId: string;
-  gameMode: GameMode;
-  players: Player[];
-  currentPlayer: number;
-  foundationPiles: Pile[];
-  drawPile: Card[];
-  cardsPlayedThisTurn: number;
-  minCardsPerTurn: number;
-  turnEnded: boolean;
-  gameOver: boolean;
-  lastUpdate: number;
-}
-
-export interface GameLobby {
-  id: string;
-  host: Player;
-  players: Player[];
-  maxPlayers: number;
-  status: LobbyStatus;
-  createdAt: number;
-}
-
-export type LobbyStatus = 'creating' | 'joining' | 'waiting' | 'ready' | 'error';

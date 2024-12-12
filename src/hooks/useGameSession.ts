@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { type GameState } from '../types/shared';
+import { type GameState } from '../types/gameTypes.ts';
 import { SESSION_KEYS } from '../utils/constants';
 import { subscribeToGameStateChanges } from '../utils/gameStateManager';
 import { getPlayerId } from '../utils/playerUtils';
